@@ -1,0 +1,47 @@
+name: Deploy GolfMatch to VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy frontend and backend over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            echo "Starting deploy..."
+
+            cd ~/apps/golfmatch
+            git pull origin main
+
+            echo "Installing backend dependencies..."
+            cd backend
+            npm install
+
+            echo "Building backend..."
+            npm run build
+
+            echo "Restarting backend with PM2..."
+            pm2 restart golfmatch-api || pm2 start dist/main.js --name golfmatch-api
+
+            echo "Installing frontend dependencies..."
+            cd ../frontend
+            npm install
+
+            echo "Building frontend..."
+            npm run build
+
+            echo "Deploying frontend to Apache..."
+            rm -rf /var/www/jrt1097.cs.unh.edu/it605/golfmatch
+            mkdir -p /var/www/jrt1097.cs.unh.edu/it605/golfmatch
+            cp -r dist/frontend/browser/* /var/www/jrt1097.cs.unh.edu/it605/golfmatch/
+
+            echo "Deploy complete!"
