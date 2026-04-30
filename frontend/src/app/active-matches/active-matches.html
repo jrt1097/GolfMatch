@@ -1,0 +1,47 @@
+<section class="page-hero">
+  <p class="eyebrow">Active Matches</p>
+  <h2>Current Golf Rounds</h2>
+  <p>View rounds that are still open or in progress and jump back into match management.</p>
+</section>
+
+<section class="content-card">
+  <div class="section-header">
+    <div>
+      <h3>Active Rounds</h3>
+      <p>{{ activeRounds.length }} active match{{ activeRounds.length === 1 ? '' : 'es' }}</p>
+    </div>
+  </div>
+
+  <p class="message" *ngIf="message">{{ message }}</p>
+
+  <p class="empty-state" *ngIf="activeRounds.length === 0 && !message">
+    No active matches right now. Create a public or invite-only round to get started.
+  </p>
+
+  <div
+    class="active-card"
+    *ngFor="let r of activeRounds"
+    (click)="openRound(r.id)"
+  >
+    <div class="card-topline">
+      <h4>{{ r.courseName }}</h4>
+
+      <span class="status-pill">
+        {{ r.status }}
+      </span>
+    </div>
+
+    <div class="match-details">
+      <span>{{ r.format }}</span>
+      <span>{{ r.scheduledAt }}</span>
+    </div>
+
+    <div class="card-footer">
+      <span class="visibility-pill">
+        {{ r.visibility === 'invite_only' ? 'Invite Only' : 'Public' }}
+      </span>
+
+      <span class="view-text">Manage match →</span>
+    </div>
+  </div>
+</section>

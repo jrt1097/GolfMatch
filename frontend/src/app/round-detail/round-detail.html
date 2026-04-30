@@ -1,0 +1,154 @@
+<a routerLink="/dashboard">← Back to Rounds</a>
+
+<section *ngIf="round" class="detail-card">
+  <h2>{{ round.courseName }}</h2>
+
+  <p>
+    <strong>Format:</strong> {{ round.format }} <br>
+    <strong>Date:</strong> {{ round.scheduledAt }} <br>
+    <strong>Status:</strong> {{ round.status }} <br>
+    <strong>Visibility:</strong>
+    {{ round.visibility === 'invite_only' ? 'Invite Only' : 'Public' }}
+  </p>
+
+  <p>{{ message }}</p>
+
+  <div *ngIf="isCompleted()" class="leaderboard">
+    <strong>Round completed. Scores are locked.</strong>
+  </div>
+
+  <div *ngIf="isCreator()" class="leaderboard">
+    <h4>Creator Controls</h4>
+
+    <select (change)="updateStatus($any($event.target).value)">
+      <option value="">Change Status</option>
+      <option value="open">Open</option>
+      <option value="in_progress">In Progress</option>
+      <option value="completed">Completed</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+
+    <button type="button" (click)="deleteRound()">Delete Round</button>
+  </div>
+
+  <div *ngIf="isCreator()" class="leaderboard">
+    <h4>Invite Player</h4>
+
+    <input
+      type="number"
+      [(ngModel)]="inviteUserId"
+      placeholder="User ID to invite"
+    >
+
+    <button type="button" (click)="inviteUser()">Invite</button>
+  </div>
+
+  <button
+    type="button"
+    *ngIf="round.visibility === 'public'"
+    (click)="joinRound()"
+  >
+    Join Round
+  </button>
+
+  <p *ngIf="round.visibility === 'invite_only' && !isCreator()">
+    This round is invite only.
+  </p>
+
+  <div class="leaderboard">
+    <h4>Participants</h4>
+
+    <p *ngIf="participants.length === 0">No participants yet.</p>
+
+    <ul>
+      <li *ngFor="let p of participants">
+        {{ p.displayName || ('Player ' + p.userId) }} - {{ p.status }}
+
+        <select
+          *ngIf="isCreator() || p.userId === getCurrentUserId()"
+          (change)="updateParticipantStatus(p.id, $any($event.target).value)"
+        >
+          <option value="">Change Status</option>
+          <option value="invited">Invited</option>
+          <option value="accepted">Accepted</option>
+          <option value="declined">Declined</option>
+        </select>
+
+        <button
+          type="button"
+          *ngIf="isCreator()"
+          (click)="removeParticipant(p.userId)"
+        >
+          Remove
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="leaderboard">
+    <h4>Score</h4>
+
+    <input
+      type="number"
+      [(ngModel)]="scoreInput"
+      placeholder="Score"
+      [disabled]="isCompleted()"
+    >
+
+    <button
+      type="button"
+      (click)="submitScore()"
+      [disabled]="isCompleted()"
+    >
+      Submit Score
+    </button>
+
+    <button
+      type="button"
+      (click)="updateScore()"
+      [disabled]="isCompleted()"
+    >
+      Update Score
+    </button>
+  </div>
+
+  <div class="leaderboard">
+    <h4>Leaderboard</h4>
+
+    <p *ngIf="scores.length === 0">No scores yet.</p>
+
+    <ol>
+      <li *ngFor="let s of scores">
+        {{ s.displayName }}: {{ s.totalStrokes }} strokes
+      </li>
+    </ol>
+  </div>
+
+  <div class="results-box" *ngIf="results">
+    <h3>Results</h3>
+
+    <p *ngIf="results.message">{{ results.message }}</p>
+
+    <div *ngIf="!results.message">
+      <p><strong>Total Players:</strong> {{ results.totalPlayers }}</p>
+      <p><strong>Winning Score:</strong> {{ results.winningScore }}</p>
+
+      <div *ngIf="results.isTie">
+        <p><strong>It's a tie!</strong></p>
+
+        <ul>
+          <li *ngFor="let w of results.winners">
+            {{ w.displayName }}
+          </li>
+        </ul>
+      </div>
+
+      <div *ngIf="!results.isTie">
+        <p>
+          <strong>Winner:</strong>
+          {{ results.winners[0].displayName }}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,67 @@
+a {
+  display: inline-block;
+  margin: 12px 0;
+  color: #1f7a4d;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.detail-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  padding: 22px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+  color: #173f2f;
+  margin-top: 0;
+}
+
+input,
+select {
+  padding: 10px;
+  margin: 6px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+button {
+  padding: 10px 14px;
+  margin: 6px;
+  border: none;
+  border-radius: 8px;
+  background-color: #1f7a4d;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  background-color: #155c39;
+  transform: scale(1.05);
+}
+
+button:disabled {
+  background: #999;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.leaderboard {
+  background: #f4f8f5;
+  padding: 14px;
+  border-radius: 10px;
+  margin-top: 14px;
+}
+
+.results-box {
+  background: #eef7ef;
+  border-left: 5px solid #1f7a4d;
+  padding: 16px;
+  border-radius: 10px;
+  margin-top: 20px;
+}

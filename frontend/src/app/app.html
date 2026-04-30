@@ -1,0 +1,37 @@
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand" routerLink="/dashboard">
+      <div class="brand-icon">⛳</div>
+
+      <div>
+        <h1>GolfMatch</h1>
+        <p>Organize rounds, track scores, and view results.</p>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="/dashboard" routerLinkActive="active-link">Rounds</a>
+      <a routerLink="/active" routerLinkActive="active-link">Active</a>
+      <a routerLink="/history" routerLinkActive="active-link">History</a>
+
+      <ng-container *ngIf="user; else loggedOut">
+        <span class="user-pill">
+          {{ user.displayName }}
+        </span>
+
+        <button type="button" class="logout-button" (click)="logout()">
+          Logout
+        </button>
+      </ng-container>
+
+      <ng-template #loggedOut>
+        <a routerLink="/login" routerLinkActive="active-link">Login</a>
+        <a class="register-button" routerLink="/register">Register</a>
+      </ng-template>
+    </nav>
+  </div>
+</header>
+
+<main class="app-container">
+  <router-outlet></router-outlet>
+</main>

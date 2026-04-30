@@ -1,0 +1,95 @@
+<section class="dashboard-hero">
+  <div>
+    <p class="eyebrow">Dashboard</p>
+    <h2>Manage Your Golf Rounds</h2>
+    <p>
+      Create new matches, choose public or invite-only visibility, and jump into round details.
+    </p>
+  </div>
+</section>
+
+<section class="rounds-grid">
+  <div class="create-card">
+    <div class="card-header">
+      <h3>Create Round</h3>
+      <p>Set up a new GolfMatch round.</p>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Course Name
+        <input [(ngModel)]="courseName" placeholder="Example: Breakfast Hill">
+      </label>
+
+      <label>
+        Date and Time
+        <input [(ngModel)]="scheduledAt" type="datetime-local">
+      </label>
+
+      <label>
+        Format
+        <select [(ngModel)]="format">
+          <option value="">Select Format</option>
+          <option value="stroke-play">Stroke Play</option>
+          <option value="match-play">Match Play</option>
+          <option value="skins">Skins</option>
+          <option value="scramble">Scramble</option>
+        </select>
+      </label>
+
+      <label>
+        Visibility
+        <select [(ngModel)]="visibility">
+          <option value="public">Public</option>
+          <option value="invite_only">Invite Only</option>
+        </select>
+      </label>
+    </div>
+
+    <button type="button" class="primary-button" (click)="createRound()">
+      Create Round
+    </button>
+
+    <p class="message" *ngIf="message">{{ message }}</p>
+  </div>
+
+  <div class="list-card">
+    <div class="card-header list-header">
+      <div>
+        <h3>Rounds</h3>
+        <p>{{ rounds.length }} round{{ rounds.length === 1 ? '' : 's' }} available</p>
+      </div>
+    </div>
+
+    <p class="empty-state" *ngIf="rounds.length === 0">
+      No rounds yet. Create one to get started.
+    </p>
+
+    <div
+      class="round-card"
+      *ngFor="let r of rounds"
+      (click)="openRound(r.id)"
+    >
+      <div class="round-topline">
+        <h4>{{ r.courseName }}</h4>
+
+        <span class="status-pill" [class.completed]="r.status === 'completed'">
+          {{ r.status }}
+        </span>
+      </div>
+
+      <div class="round-details">
+        <span>{{ r.format }}</span>
+        <span>{{ r.scheduledAt }}</span>
+      </div>
+
+      <div class="round-footer">
+        <span class="visibility-pill">
+          {{ r.visibility === 'invite_only' ? 'Invite Only' : 'Public' }}
+        </span>
+
+        <span class="view-text">View details →</span>
+      </div>
+    </div>
+  </div>
+</section>

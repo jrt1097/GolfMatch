@@ -1,0 +1,47 @@
+<section class="page-hero">
+  <p class="eyebrow">History</p>
+  <h2>My Round History</h2>
+  <p>Review completed rounds, past scores, and previous GolfMatch results.</p>
+</section>
+
+<section class="content-card">
+  <div class="section-header">
+    <div>
+      <h3>Past Rounds</h3>
+      <p>{{ history.length }} saved round{{ history.length === 1 ? '' : 's' }}</p>
+    </div>
+  </div>
+
+  <p class="message" *ngIf="message">{{ message }}</p>
+
+  <p class="empty-state" *ngIf="history.length === 0 && !message">
+    No completed rounds yet. Once a match is finished, it will appear here.
+  </p>
+
+  <div class="history-card" *ngFor="let h of history">
+    <div class="card-topline">
+      <h4>{{ h.courseName }}</h4>
+
+      <span class="status-pill">
+        {{ h.status }}
+      </span>
+    </div>
+
+    <div class="history-details">
+      <span>{{ h.format }}</span>
+      <span>{{ h.scheduledAt }}</span>
+    </div>
+
+    <div class="score-box">
+      <span class="score-label">My Score</span>
+
+      <strong *ngIf="h.myScore !== null">
+        {{ h.myScore }} strokes
+      </strong>
+
+      <strong *ngIf="h.myScore === null">
+        No score submitted
+      </strong>
+    </div>
+  </div>
+</section>
