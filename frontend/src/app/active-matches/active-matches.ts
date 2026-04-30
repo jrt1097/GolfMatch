@@ -1,6 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { RoundService } from '../services/round';
 
 @Component({
@@ -26,22 +28,71 @@ export class ActiveMatchesComponent implements OnInit {
   }
 
   loadActiveMatches() {
+    const currentUser = this.roundService.getCurrentUser();
+
+    if (!currentUser) {
+      this.message = 'You must be logged in to view active matches.';
+      this.activeRounds = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.roundService.getRounds().subscribe({
       next: (data: any) => {
-        this.rounds = data;
-
-        this.activeRounds = this.rounds.filter(
-          (round) =>
+        const possibleActiveRounds = data.filter(
+          (round: any) =>
             round.status === 'open' || round.status === 'in_progress',
         );
 
-        if (this.activeRounds.length === 0) {
+        if (possibleActiveRounds.length === 0) {
+          this.activeRounds = [];
           this.message = 'No active matches right now.';
-        } else {
-          this.message = '';
+          this.cdr.detectChanges();
+          return;
         }
 
-        this.cdr.detectChanges();
+        const participantChecks = possibleActiveRounds.map((round: any) =>
+          this.roundService.getParticipants(round.id).pipe(
+            map((participants: any) => {
+              const isAcceptedParticipant = participants.some(
+                (p: any) =>
+                  Number(p.userId) === Number(currentUser.id) &&
+                  p.status === 'accepted',
+              );
+
+              return {
+                round,
+                isAcceptedParticipant,
+              };
+            }),
+            catchError(() =>
+              of({
+                round,
+                isAcceptedParticipant: false,
+              }),
+            ),
+          ),
+        );
+
+        forkJoin(participantChecks).subscribe({
+          next: (checkedRounds: any) => {
+            this.activeRounds = checkedRounds
+              .filter((item: any) => item.isAcceptedParticipant)
+              .map((item: any) => item.round);
+
+            this.message =
+              this.activeRounds.length === 0
+                ? 'No active matches right now.'
+                : '';
+
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error(err);
+            this.message = 'Could not load active matches.';
+            this.cdr.detectChanges();
+          },
+        });
       },
       error: (err) => {
         console.error(err);

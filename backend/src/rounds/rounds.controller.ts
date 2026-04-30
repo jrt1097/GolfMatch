@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -29,12 +30,29 @@ export class RoundsController {
       body.format,
       req.user.id,
       body.visibility,
+      body.courseAddress,
+      body.courseLatitude,
+      body.courseLongitude,
+      body.placeId,
     );
   }
 
   @Get()
   getRounds() {
     return this.roundsService.getRounds();
+  }
+
+  @Get('nearby')
+  getNearbyRounds(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius: string,
+  ) {
+    return this.roundsService.getNearbyRounds(
+      Number(lat),
+      Number(lng),
+      Number(radius || 25),
+    );
   }
 
   @Get(':id')

@@ -1,9 +1,9 @@
 <section class="dashboard-hero">
   <div>
     <p class="eyebrow">Dashboard</p>
-    <h2>Manage Your Golf Rounds</h2>
+    <h2>Find Nearby Golf Rounds</h2>
     <p>
-      Create new matches, choose public or invite-only visibility, and jump into round details.
+      Search by course name or town, then create or join rounds near you.
     </p>
   </div>
 </section>
@@ -12,15 +12,89 @@
   <div class="create-card">
     <div class="card-header">
       <h3>Create Round</h3>
-      <p>Set up a new GolfMatch round.</p>
+      <p>Search a real golf course or manually enter one.</p>
+    </div>
+
+    <div class="course-search-box">
+      <label>
+        Search Golf Course
+        <div class="search-row">
+          <input
+            [(ngModel)]="courseSearch"
+            placeholder="Course name or town, state"
+          >
+
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="searchCourses()"
+            [disabled]="isSearchingCourses"
+          >
+            {{ isSearchingCourses ? 'Searching...' : 'Search' }}
+          </button>
+        </div>
+      </label>
+
+      <button
+        type="button"
+        class="manual-link-button"
+        (click)="useManualCourse()"
+      >
+        Can’t find your course? Enter it manually
+      </button>
+
+      <div class="course-results" *ngIf="courseResults.length > 0">
+        <button
+          type="button"
+          class="course-result"
+          *ngFor="let c of courseResults"
+          (click)="selectCourse(c)"
+        >
+          <strong>{{ c.name || c.display_name.split(',')[0] }}</strong>
+          <span>{{ c.display_name }}</span>
+        </button>
+      </div>
+
+      <div class="manual-course-box" *ngIf="manualMode">
+        <h4>Manual Course Entry</h4>
+
+        <label>
+          Course Name
+          <input
+            [(ngModel)]="manualCourseName"
+            placeholder="Example: Breakfast Hill Golf Club"
+          >
+        </label>
+
+        <label>
+          Town and State
+          <input
+            [(ngModel)]="manualTownState"
+            placeholder="Example: Greenland, NH"
+          >
+        </label>
+
+        <button
+          type="button"
+          class="secondary-button manual-save-button"
+          (click)="saveManualCourse()"
+        >
+          Use This Course
+        </button>
+      </div>
+
+      <div class="selected-course" *ngIf="selectedCourse">
+        <strong>Selected Course</strong>
+        <p>{{ courseName }}</p>
+        <span>{{ courseAddress }}</span>
+
+        <span class="manual-note" *ngIf="selectedCourse.manual">
+          Manual course entry. Nearby filtering will only work for rounds with exact map coordinates.
+        </span>
+      </div>
     </div>
 
     <div class="form-grid">
-      <label>
-        Course Name
-        <input [(ngModel)]="courseName" placeholder="Example: Breakfast Hill">
-      </label>
-
       <label>
         Date and Time
         <input [(ngModel)]="scheduledAt" type="datetime-local">
@@ -57,12 +131,44 @@
     <div class="card-header list-header">
       <div>
         <h3>Rounds</h3>
-        <p>{{ rounds.length }} round{{ rounds.length === 1 ? '' : 's' }} available</p>
+        <p>{{ rounds.length }} round{{ rounds.length === 1 ? '' : 's' }}</p>
       </div>
     </div>
 
+    <div class="nearby-controls">
+      <label>
+        Distance
+        <select [(ngModel)]="radius">
+          <option [ngValue]="10">10 miles</option>
+          <option [ngValue]="25">25 miles</option>
+          <option [ngValue]="50">50 miles</option>
+          <option [ngValue]="100">100 miles</option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="loadNearbyRounds()"
+      >
+        Show Nearby
+      </button>
+
+      <button
+        type="button"
+        class="light-button"
+        (click)="loadRounds()"
+      >
+        Show All
+      </button>
+    </div>
+
+    <p class="location-message" *ngIf="locationMessage">
+      {{ locationMessage }}
+    </p>
+
     <p class="empty-state" *ngIf="rounds.length === 0">
-      No rounds yet. Create one to get started.
+      No rounds found.
     </p>
 
     <div
@@ -73,14 +179,26 @@
       <div class="round-topline">
         <h4>{{ r.courseName }}</h4>
 
-        <span class="status-pill" [class.completed]="r.status === 'completed'">
+        <span class="status-pill">
           {{ r.status }}
         </span>
       </div>
 
+      <p class="course-address" *ngIf="r.courseAddress">
+        {{ r.courseAddress }}
+      </p>
+
       <div class="round-details">
         <span>{{ r.format }}</span>
         <span>{{ r.scheduledAt }}</span>
+
+        <span *ngIf="r.distanceMiles !== undefined">
+          {{ r.distanceMiles }} miles away
+        </span>
+
+        <span *ngIf="r.placeId === 'manual'">
+          Manual course
+        </span>
       </div>
 
       <div class="round-footer">
@@ -88,7 +206,7 @@
           {{ r.visibility === 'invite_only' ? 'Invite Only' : 'Public' }}
         </span>
 
-        <span class="view-text">View details →</span>
+        <span class="view-text">View →</span>
       </div>
     </div>
   </div>

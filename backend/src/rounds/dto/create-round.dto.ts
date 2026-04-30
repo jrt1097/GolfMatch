@@ -1,8 +1,30 @@
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import {
+  IsIn,
+  IsLatitude,
+  IsLongitude,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateRoundDto {
   @IsString()
   courseName!: string;
+
+  @IsOptional()
+  @IsString()
+  courseAddress?: string;
+
+  @IsOptional()
+  @IsLatitude()
+  courseLatitude?: number;
+
+  @IsOptional()
+  @IsLongitude()
+  courseLongitude?: number;
+
+  @IsOptional()
+  @IsString()
+  placeId?: string;
 
   @IsString()
   scheduledAt!: string;

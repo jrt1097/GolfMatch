@@ -13,6 +13,18 @@ export class Round {
   @Column()
   courseName!: string;
 
+  @Column({ nullable: true })
+  courseAddress!: string;
+
+  @Column({ type: 'double', nullable: true })
+  courseLatitude!: number;
+
+  @Column({ type: 'double', nullable: true })
+  courseLongitude!: number;
+
+  @Column({ nullable: true })
+  placeId!: string;
+
   @Column()
   scheduledAt!: string;
 

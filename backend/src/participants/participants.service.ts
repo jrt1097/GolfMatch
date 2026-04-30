@@ -6,9 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Participant } from './entities/participant.entity';
 import { Round } from '../rounds/entities/round.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class ParticipantsService {
@@ -18,6 +19,9 @@ export class ParticipantsService {
 
     @InjectRepository(Round)
     private roundRepository: Repository<Round>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   private async getRound(roundId: number) {
@@ -60,9 +64,29 @@ export class ParticipantsService {
     return this.participantRepository.save(participant);
   }
 
-  async inviteUser(
+  async leaveRound(roundId: number, userId: number) {
+    const round = await this.getRound(roundId);
+
+    if (Number(round.createdByUserId) === Number(userId)) {
+      throw new ForbiddenException('Round creator cannot leave their own round');
+    }
+
+    const participant = await this.participantRepository.findOne({
+      where: { roundId, userId },
+    });
+
+    if (!participant) {
+      throw new NotFoundException('You are not part of this round');
+    }
+
+    await this.participantRepository.remove(participant);
+
+    return { message: 'Left round' };
+  }
+
+  async inviteUserByDisplayName(
     roundId: number,
-    userIdToInvite: number,
+    displayName: string,
     currentUserId: number,
   ) {
     const round = await this.getRound(roundId);
@@ -71,8 +95,26 @@ export class ParticipantsService {
       throw new ForbiddenException('Only the round creator can invite users');
     }
 
+    if (!displayName || !displayName.trim()) {
+      throw new BadRequestException('Display name is required');
+    }
+
+    const userToInvite = await this.userRepository.findOne({
+      where: {
+        displayName: ILike(displayName.trim()),
+      },
+    });
+
+    if (!userToInvite) {
+      throw new NotFoundException('No user found with that display name');
+    }
+
+    if (Number(userToInvite.id) === Number(currentUserId)) {
+      throw new ConflictException('You are already in your own round');
+    }
+
     const existing = await this.participantRepository.findOne({
-      where: { roundId, userId: userIdToInvite },
+      where: { roundId, userId: userToInvite.id },
     });
 
     if (existing) {
@@ -81,7 +123,7 @@ export class ParticipantsService {
 
     const participant = this.participantRepository.create({
       roundId,
-      userId: userIdToInvite,
+      userId: userToInvite.id,
       status: 'invited',
     });
 
@@ -91,9 +133,30 @@ export class ParticipantsService {
   async getParticipants(roundId: number) {
     await this.getRound(roundId);
 
-    return this.participantRepository.find({
+    const participants = await this.participantRepository.find({
       where: { roundId },
       order: { id: 'ASC' },
+    });
+
+    if (participants.length === 0) {
+      return [];
+    }
+
+    const users = await this.userRepository.find();
+
+    return participants.map((participant) => {
+      const user = users.find(
+        (u) => Number(u.id) === Number(participant.userId),
+      );
+
+      return {
+        id: participant.id,
+        roundId: participant.roundId,
+        userId: participant.userId,
+        status: participant.status,
+        displayName: user?.displayName || `Player ${participant.userId}`,
+        email: user?.email || null,
+      };
     });
   }
 

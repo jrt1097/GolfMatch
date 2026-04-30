@@ -25,8 +25,27 @@ export class RoundService {
     return this.auth.getCurrentUser();
   }
 
+  searchGolfCourses(query: string) {
+    const cleanedQuery = query.trim();
+
+    const encodedQuery = encodeURIComponent(
+      `${cleanedQuery} golf course`,
+    );
+
+    return this.http.get(
+      `https://nominatim.openstreetmap.org/search?q=${encodedQuery}&format=json&limit=8&addressdetails=1`,
+    );
+  }
+
   getRounds() {
     return this.http.get(`${this.API}/rounds`, this.authHeaders());
+  }
+
+  getNearbyRounds(lat: number, lng: number, radius: number) {
+    return this.http.get(
+      `${this.API}/rounds/nearby?lat=${lat}&lng=${lng}&radius=${radius}`,
+      this.authHeaders(),
+    );
   }
 
   getRound(roundId: number) {
@@ -38,11 +57,18 @@ export class RoundService {
   }
 
   updateRound(roundId: number, data: any) {
-    return this.http.patch(`${this.API}/rounds/${roundId}`, data, this.authHeaders());
+    return this.http.patch(
+      `${this.API}/rounds/${roundId}`,
+      data,
+      this.authHeaders(),
+    );
   }
 
   deleteRound(roundId: number) {
-    return this.http.delete(`${this.API}/rounds/${roundId}`, this.authHeaders());
+    return this.http.delete(
+      `${this.API}/rounds/${roundId}`,
+      this.authHeaders(),
+    );
   }
 
   updateStatus(roundId: number, status: string) {
@@ -54,22 +80,40 @@ export class RoundService {
   }
 
   joinRound(roundId: number) {
-    return this.http.post(`${this.API}/rounds/${roundId}/join`, {}, this.authHeaders());
+    return this.http.post(
+      `${this.API}/rounds/${roundId}/join`,
+      {},
+      this.authHeaders(),
+    );
   }
 
-  inviteUser(roundId: number, userId: number) {
+  leaveRound(roundId: number) {
+    return this.http.delete(
+      `${this.API}/rounds/${roundId}/leave`,
+      this.authHeaders(),
+    );
+  }
+
+  inviteUser(roundId: number, displayName: string) {
     return this.http.post(
       `${this.API}/rounds/${roundId}/invite`,
-      { userId },
+      { displayName },
       this.authHeaders(),
     );
   }
 
   getParticipants(roundId: number) {
-    return this.http.get(`${this.API}/rounds/${roundId}/participants`, this.authHeaders());
+    return this.http.get(
+      `${this.API}/rounds/${roundId}/participants`,
+      this.authHeaders(),
+    );
   }
 
-  updateParticipantStatus(roundId: number, participantId: number, status: string) {
+  updateParticipantStatus(
+    roundId: number,
+    participantId: number,
+    status: string,
+  ) {
     return this.http.patch(
       `${this.API}/rounds/${roundId}/participants/${participantId}`,
       { status },
@@ -101,10 +145,16 @@ export class RoundService {
   }
 
   getScores(roundId: number) {
-    return this.http.get(`${this.API}/rounds/${roundId}/scores`, this.authHeaders());
+    return this.http.get(
+      `${this.API}/rounds/${roundId}/scores`,
+      this.authHeaders(),
+    );
   }
 
   getResults(roundId: number) {
-    return this.http.get(`${this.API}/rounds/${roundId}/results`, this.authHeaders());
+    return this.http.get(
+      `${this.API}/rounds/${roundId}/results`,
+      this.authHeaders(),
+    );
   }
 }

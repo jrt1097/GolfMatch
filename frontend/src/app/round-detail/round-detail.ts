@@ -18,7 +18,8 @@ export class RoundDetailComponent implements OnInit {
   message = '';
 
   scoreInput = 0;
-  inviteUserId = 0;
+  inviteDisplayName = '';
+  isJoined = false;
 
   participants: any[] = [];
   scores: any[] = [];
@@ -44,7 +45,7 @@ export class RoundDetailComponent implements OnInit {
   }
 
   isCreator() {
-    return this.round?.createdByUserId === this.getCurrentUserId();
+    return Number(this.round?.createdByUserId) === Number(this.getCurrentUserId());
   }
 
   isCompleted() {
@@ -76,6 +77,15 @@ export class RoundDetailComponent implements OnInit {
     this.roundService.getParticipants(this.roundId).subscribe({
       next: (data: any) => {
         this.participants = data;
+
+        const currentUserId = this.getCurrentUserId();
+
+        this.isJoined = this.participants.some(
+          (p: any) =>
+            Number(p.userId) === Number(currentUserId) &&
+            p.status === 'accepted',
+        );
+
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -153,25 +163,41 @@ export class RoundDetailComponent implements OnInit {
     });
   }
 
+  leaveRound() {
+    this.roundService.leaveRound(this.roundId).subscribe({
+      next: () => {
+        this.message = 'You left the round';
+        this.loadEverything();
+      },
+      error: (err) => {
+        console.error(err);
+        this.message = err.error?.message || 'Could not leave round';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   inviteUser() {
-    if (!this.inviteUserId || this.inviteUserId <= 0) {
-      this.message = 'Enter a valid user ID';
+    if (!this.inviteDisplayName.trim()) {
+      this.message = 'Enter a valid display name';
       this.cdr.detectChanges();
       return;
     }
 
-    this.roundService.inviteUser(this.roundId, this.inviteUserId).subscribe({
-      next: () => {
-        this.message = 'User invited';
-        this.inviteUserId = 0;
-        this.loadParticipants();
-      },
-      error: (err) => {
-        console.error(err);
-        this.message = err.error?.message || 'Could not invite user';
-        this.cdr.detectChanges();
-      },
-    });
+    this.roundService
+      .inviteUser(this.roundId, this.inviteDisplayName.trim())
+      .subscribe({
+        next: () => {
+          this.message = 'User invited';
+          this.inviteDisplayName = '';
+          this.loadParticipants();
+        },
+        error: (err) => {
+          console.error(err);
+          this.message = err.error?.message || 'Could not invite user';
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   updateParticipantStatus(participantId: number, status: string) {
@@ -249,7 +275,7 @@ export class RoundDetailComponent implements OnInit {
     }
 
     const myScore = this.scores.find(
-      (s) => s.userId === this.getCurrentUserId(),
+      (s) => Number(s.userId) === Number(this.getCurrentUserId()),
     );
 
     if (!myScore) {

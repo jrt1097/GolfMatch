@@ -26,15 +26,23 @@ export class ParticipantsController {
     return this.participantsService.joinRound(id, req.user.id);
   }
 
+  @Delete(':id/leave')
+  leaveRound(
+    @Param('id', ParseIntPipe) roundId: number,
+    @Request() req: any,
+  ) {
+    return this.participantsService.leaveRound(roundId, req.user.id);
+  }
+
   @Post(':id/invite')
   inviteUser(
     @Param('id', ParseIntPipe) roundId: number,
-    @Body('userId', ParseIntPipe) userId: number,
+    @Body('displayName') displayName: string,
     @Request() req: any,
   ) {
-    return this.participantsService.inviteUser(
+    return this.participantsService.inviteUserByDisplayName(
       roundId,
-      userId,
+      displayName,
       req.user.id,
     );
   }

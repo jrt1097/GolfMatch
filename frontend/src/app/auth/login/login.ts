@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
@@ -20,20 +20,22 @@ export class LoginComponent {
   constructor(
     private auth: AuthService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   login() {
     this.message = '';
 
-    if (!this.email || !this.password) {
+    if (!this.email.trim() || !this.password.trim()) {
       this.message = 'Please enter your email and password.';
+      this.cdr.detectChanges();
       return;
     }
 
     this.isLoading = true;
 
     this.auth.login({
-      email: this.email,
+      email: this.email.trim(),
       password: this.password,
     }).subscribe({
       next: (res: any) => {
@@ -43,8 +45,15 @@ export class LoginComponent {
       },
       error: (err) => {
         console.error(err);
+
         this.isLoading = false;
-        this.message = err.error?.message || 'Login failed. Please try again.';
+
+        this.message =
+          err?.error?.message ||
+          err?.message ||
+          'Login failed. Please check your email and password.';
+
+        this.cdr.detectChanges();
       },
     });
   }
